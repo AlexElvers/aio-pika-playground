@@ -15,8 +15,7 @@ async def main(loop):
     client = await rpc.Client(channel, channel.default_exchange).connect()
 
     print(" [x] Requesting fib(30)")
-    # result = await client.execute_call("fib", [30], {})
-    result = await client.call.fib(30)
+    result = await asyncio.gather(client.call.fib(2), client.call.fib(30), client.call.fib(7))
     print(" [.] Got %r" % result)
 
 

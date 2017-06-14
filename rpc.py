@@ -7,11 +7,6 @@ from typing import Sequence, Any, Dict, Tuple
 from aio_pika import IncomingMessage, Exchange, Queue, Message, Channel
 
 
-class Handler:
-    def __init__(self):
-        pass
-
-
 class MethodCaller:
     def __init__(self, client: "Client", method_name=None) -> None:
         self._client = client
@@ -73,9 +68,12 @@ async def on_message(handler, exchange: Exchange, message: IncomingMessage) -> N
 
         print(" [.] call %s with args=%s and kwargs=%s" % (method_name, args, kwargs))
         if isinstance(handler, dict):
-            result = handler[method_name](*args, **kwargs)
+            method = handler[method_name]
         else:
-            raise ValueError
+            method = getattr(handler, method_name, None)
+            if method is None or not hasattr(method, "_rpc_method"):
+                raise ValueError("unknown rpc method %r" % method_name)
+        result = method(*args, **kwargs)
 
         response = json.dumps(result).encode()
 
@@ -94,6 +92,7 @@ def serve(queue: Queue, handler, exchange: Exchange) -> None:
 
 
 def method(func):
+    func._rpc_method = True
     return func
 
 

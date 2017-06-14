@@ -14,7 +14,8 @@ def fib(n):
         return fib(n - 1) + fib(n - 2)
 
 
-class FibHandler(rpc.Handler):
+class FibHandler:
+    @rpc.method
     def fib(self, n):
         if n == 0:
             return 0
@@ -35,8 +36,8 @@ async def main(loop):
     queue = await channel.declare_queue('rpc_queue')
 
     # Start listening the queue with name 'rpc_queue'
-    # rpc.serve(queue, FibHandler(), channel.default_exchange)
-    rpc.serve(queue, dict(fib=fib), channel.default_exchange)
+    rpc.serve(queue, FibHandler(), channel.default_exchange)
+    # rpc.serve(queue, dict(fib=fib), channel.default_exchange)
 
 
 if __name__ == "__main__":
